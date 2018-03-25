@@ -1,0 +1,61 @@
+---
+title: "Plot spatial data with leaflet "
+author: "MM2"
+date: "January, 2018"
+output: 
+  html_document:
+        toc: true
+        theme: united
+runtime: shiny
+---
+```{r,message=FALSE,error=FALSE,warning=FALSE,echo=FALSE}
+rm(list=ls())
+
+# set the working directory
+wd = "Q:\\portfolios\\daastrat\\daastrat1m4\\Rcode\\Testing"
+wd = "F:\\leaflet mapping\\Testing"
+setwd(wd)
+```
+
+# The required libraries
+```{r,message=FALSE,error=FALSE,warning=FALSE}
+library(sp)
+library(rgdal) # reading spatial files into R
+library(geosphere)
+library(rgeos)
+library(leaflet)
+library(htmlwidgets) # Saving leaflet output as html
+library(webshot)
+library(RColorBrewer)
+library(raster)
+library(rlist) # save a list to a file and read that in again 
+```
+
+# Read in the shape data
+A powerful way for reading in spatial data into `R` is `readOGR` from the package `rgdal`. `readOGR` reads `*.shp` shape file along with other files (extensions: `dbf`, `shp`, `shx`) in the same folder simultaneously.  It has two required parameters `dsn` and `layer`. The first argument is the path of the shapefile whereas the second argument is the layer name without an extension.
+
+```{r,message=FALSE,warning=FALSE}
+WA = readOGR(wd, "WA_MeshBlocks")
+Midland = readOGR(wd, "MidlandShops") 
+```
+
+The shapefile is read as a `SpatialPolygonsDataFrame` object, (multi)polygons as well as a data frame (nongeographic attribute data) where each row stores the attributes.
+
+```{r}
+class(WA);class(Midland)
+```
+
+The projection information for this spatial object is:
+
+```{r}
+proj4string(WA);proj4string(Midland)
+```
+
+# Mapping with Leaflet
+ Firstly, the dataset is cut down including both data and polygons to speed up mapping and loading process in `leaflet`.
+
+```{r}
+sub_WA = subset(WA, gcc_name16 == "Greater Perth")
+sub_WA2 = subset(WA,sa4_name16 == levels(WA@data$sa4_name16)[grep("Perth",levels(WA@data$sa4_name16))])
+WA_Midland = subset(WA,sa2_name16 == levels(WA@data$sa2_name16)[grep("Midland",levels(WA@data$sa2_name16))])
+```
